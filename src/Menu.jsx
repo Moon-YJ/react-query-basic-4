@@ -9,9 +9,6 @@ export default function Menu() {
       <li>
         <Link to="/name">User Name</Link>
       </li>
-      <li>
-        <Link to="/address">User Address</Link>
-      </li>
     </ul>
   );
 }

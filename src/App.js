@@ -4,7 +4,6 @@ import Menu from "./Menu";
 import { Route } from "react-router-dom";
 import Main from "./Main";
 import UserName from "./UserName";
-import UserAddress from "./UserAddress";
 
 function App() {
   const queryClient = new QueryClient();
@@ -13,7 +12,6 @@ function App() {
       <Menu />
       <Route exact path="/" component={Main} />
       <Route path="/name" component={UserName} />
-      <Route path="/address" component={UserAddress} />
       <ReactQueryDevtools />
     </QueryClientProvider>
   );
