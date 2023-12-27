@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// 특정 순번의 서버 데이터 가져오는 fetching func, custom hook
 const fetchUser = async ({ queryKey }) => {
   const response = await fetch(
     `https://jsonplaceholder.typicode.com/users/${queryKey[1]}`
@@ -7,7 +8,8 @@ const fetchUser = async ({ queryKey }) => {
   return await response.json();
 };
 
-// 데이터 목록 호출 custom hook
+// 순서 2 - 컴포넌트에서 해당 훅 호출시 고유 쿼리를 등록하면서 num값을 전달해서 fetching함수 호출, 반환된 데이터값이 옵션값에 따라 caching 처리되면서 반환됨
+// 데이터 목록 호출 custom hook (useQuery)
 export const useUserQuery = (num) => {
   // useQuery 첫번째 인수로 넣는 값은 무조건 fetching함수로 전달됨
   // useQuery에는 query Key가 동일하면 같은 데이터라고 인지하기 때문에 refetching 처리하지않음
@@ -19,17 +21,21 @@ export const useUserQuery = (num) => {
   });
 };
 
-// 기존 데이터 삭제하는 함수 (typicode 가이드 문서 참고)
-const deleteUser = async (num) => {
-  const reponse = await fetch(
-    `https://jsonplaceholder.typicode.com/users/${num}`,
-    {
-      method: "DELETE",
-    }
-  );
-  return await reponse.json();
-};
+/*
+  // 기존 데이터 삭제하는 함수 (typicode 가이드 문서 참고)
+  const deleteUser = async (num) => {
+    const reponse = await fetch(
+      `https://jsonplaceholder.typicode.com/users/${num}`,
+      {
+        method: "DELETE",
+      }
+    );
+    return await reponse.json();
+  };
+*/
 
+// 순서6 - 해당 함수 호출되면 num순번의 데이터 객체에서 name값을 같이 전달된 userName값으로 서버데이터를 실제 변경 처리 및 반환
+// 특정 순번의 서버 데이터를 변경하는 fetching func, custom hook (useMutation)
 const updateUser = async ([userName, num]) => {
   const response = await fetch(
     `https://jsonplaceholder.typicode.com/posts/${num}`,
@@ -48,25 +54,29 @@ const updateUser = async ([userName, num]) => {
   return result;
 };
 
-// 인수로 순번을 받아서 해당 순번의 데이터를 삭제하는 custom hook
-export const useDeleteQuery = () => {
-  // 기존 App.js에서 생성한 queryClient 인스턴스를 호출하는 함수
-  // 해당 queryClient 인스턴스에서 활용할수 있는 protype method인 setQueryData라는 서버데이터 변경 요청값을 등록하는 함수 가져올 수 있음
-  const queryClient = useQueryClient();
-  // useMutation(비동기 데이터 변경함수, 옵션설정 객체{onSuccess: mutate요청이 성공적으로 수행되면 연결될 핸들러함수})
-  // useMutation 훅이 deleteUser라는 내부 fetching함수를 호출해서 서버데이터 변경 요청
-  return useMutation(deleteUser, {
-    // 서버 데이터 변경 성공시, 변경된 서버 데이터값을 다시 고유의 쿼리키로 등록해서 react-query로 비동기 데이터 관리
-    onSuccess: (args) => {
-      queryClient.setQueryData(["users", args.id], args);
-    },
-  });
-};
+/*
+  // 인수로 순번을 받아서 해당 순번의 데이터를 삭제하는 custom hook
+  export const useDeleteQuery = () => {
+    // 기존 App.js에서 생성한 queryClient 인스턴스를 호출하는 함수
+    // 해당 queryClient 인스턴스에서 활용할수 있는 protype method인 setQueryData라는 서버데이터 변경 요청값을 등록하는 함수 가져올 수 있음
+    const queryClient = useQueryClient();
+    // useMutation(비동기 데이터 변경함수, 옵션설정 객체{onSuccess: mutate요청이 성공적으로 수행되면 연결될 핸들러함수})
+    // useMutation 훅이 deleteUser라는 내부 fetching함수를 호출해서 서버데이터 변경 요청
+    return useMutation(deleteUser, {
+      // 서버 데이터 변경 성공시, 변경된 서버 데이터값을 다시 고유의 쿼리키로 등록해서 react-query로 비동기 데이터 관리
+      onSuccess: (args) => {
+        queryClient.setQueryData(["users", args.id], args);
+      },
+    });
+  };
+*/
 
+// 순서5 - mutate 메서드 호출시, 아래구문이 자동적으로 호출되면서 등록된 updateUser함수 호출
 // 데이터 변경 커스텀훅
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation(updateUser, {
+    // 순서7 - updateUser함수로 서버 데이터 변경이 성공적으로 이뤄지면 해당 값을 인수로 받아서 고유 쿼리키 생성하면서 캐싱처리된 값을 쿼리클라이언트로 전역 관리
     onSuccess: (args) => {
       console.log(args);
       queryClient.setQueryData(["users", args.id], args);
