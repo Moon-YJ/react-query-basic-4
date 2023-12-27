@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 
 const fetchUser = async ({ queryKey }) => {
   console.log(queryKey);
-  const response = await fetch("https://jsonplaceholder.typicode.com/users");
+  const response = await fetch(
+    `https://jsonplaceholder.typicode.com/users/${queryKey[1]}`
+  );
   return await response.json();
 };
 
@@ -12,8 +14,8 @@ export const useUserQuery = (num) => {
   return useQuery(["users", num], fetchUser, {
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    cacheTime: 1000 * 5, // default 값 5분
-    staleTime: 1000 * 5, // default 값 0
+    cacheTime: 1000 * 20, // inactive된 상태에서 얼마동안 데이터를 캐시에 유지시킬지에 대한 시간 정보, 해당 데이터를 컴포넌트에서 활용하지 않더라도 얼마동안 garbage collector에 의한 데이터 삭제를 막을지에 대한 시간값 설정(default 값 5분)
+    staleTime: 1000 * 5, // 서버 데이터를 fetching한 순간부터 언제까지 최신 데이터로 인지시키면서 cacheTime을 소진시키지 않을지에 대한 시간값, 얼마동안 refetching을 하지 않을지에 대한 시간값 설정 (staleTime -> cacheTime) (default 값 0)
   });
 };
 
